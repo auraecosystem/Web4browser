@@ -5,11 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "@prisma/client": "^5.20.0",
     "next": "^15.0.0",
+    "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -18,6 +21,7 @@
     "@types/react": "^19.0.0",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
+    "prisma": "^5.20.0",
     "tailwind-css": "^3.4.0",
     "typescript": "^5.0.0"
   }
