@@ -166,3 +166,22 @@ export default function ApplicationTerminalShell() {
     </main>
   );
 }
+// Add these configuration track states to the top of your react component:
+const [activeFileBase64, setActiveFileBase64] = useState<string | null>(null);
+const [activeFileMime, setActiveFileMime] = useState<string | null>(null);
+
+// Inject tracking attachment values into your standard fetch submission loop:
+const response = await fetch('/api/search', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ 
+    query: userMessage, 
+    history: chatLog,
+    imageBase64: activeFileBase64,
+    mimeType: activeFileMime
+  }),
+});
+
+// Clear document buffers inside your terminal form code setup:
+setActiveFileBase64(null);
+setActiveFileMime(null);
