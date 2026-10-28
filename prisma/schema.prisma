@@ -1,0 +1,16 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SearchSession {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now())
+  routingParams String
+  query         String
+  aiResponse    String
+}
