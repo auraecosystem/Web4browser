@@ -30,7 +30,7 @@ export default function ApplicationTerminalShell() {
     return <div className="min-h-screen bg-zinc-950 flex items-center justify-center font-mono text-xs text-zinc-500">SYSTEM LOADING...</div>;
   }
 
-  // 🚪 UNAUTHENTICATED GUEST VIEW: Splash Lock Screen
+  // Unauthenticated guest view.
   if (!session) {
     return (
       <main className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 font-mono">
@@ -50,7 +50,7 @@ export default function ApplicationTerminalShell() {
     );
   }
 
-  // 🖥️ AUTHENTICATED USER VIEW: Main Terminal Search Engine Dashboard
+  // Authenticated user view.
   const runDeepSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim() || isStreaming) return;
@@ -76,13 +76,13 @@ export default function ApplicationTerminalShell() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      
+
       setChatLog((prev) => [...prev, { role: 'assistant', content: '' }]);
 
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        
+
         const chunkText = decoder.decode(value, { stream: true });
         setChatLog((prev) => {
           const adjusted = [...prev];
@@ -94,7 +94,7 @@ export default function ApplicationTerminalShell() {
       fetchDbLogs();
     } catch (err) {
       console.error(err);
-    } {
+    } finally {
       setIsStreaming(false);
     }
   };
@@ -105,7 +105,7 @@ export default function ApplicationTerminalShell() {
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">Index Log Streams</h2>
-            <span className="text-[10px] text-zinc-500 truncate max-w-[120px] font-mono">{session.user.name}</span>
+            <span className="text-[10px] text-zinc-500 truncate max-w-[120px] font-mono">{session.user?.name || 'Operator'}</span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-3 pr-1 text-xs font-mono">
             {historyLogs.map((log) => (
@@ -116,8 +116,8 @@ export default function ApplicationTerminalShell() {
             ))}
           </div>
         </div>
-        <button 
-          onClick={() => signOut()} 
+        <button
+          onClick={() => signOut()}
           className="w-full py-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-xs font-semibold text-zinc-400 transition"
         >
           Terminate Session
