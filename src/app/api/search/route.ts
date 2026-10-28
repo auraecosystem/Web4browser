@@ -16,7 +16,7 @@ async function dispatchAutomationAlert(user: string, query: string, routing: str
   try {
     await fetch(webhookUrl, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: `🚨 **CRITICAL SEARCH PARAMETER ALERT**\n**Operator:** ${user}\n**Query Parameter:** `${query}`\n**Routing Trace ID:** `${routing}`\n*System dispatch routing running via automated core.*` }),
+      body: JSON.stringify({ content: `🚨 **CRITICAL SEARCH PARAMETER ALERT**\n**Operator:** ${user}\n**Query Parameter:** ${query}\n**Routing Trace ID:** ${routing}\n*System dispatch routing running via automated core.*` }),
       signal: AbortSignal.timeout(5000)
     });
   } catch (error) { console.error('Alert dispatch failed:', error); }
