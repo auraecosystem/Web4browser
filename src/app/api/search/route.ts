@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { getVectorQueryContext } from '@/lib/pinecone';
 
-const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const MAX_QUERY_LENGTH = 2000;
 const MAX_HISTORY_ITEMS = 12;
 const MAX_HISTORY_ITEM_LENGTH = 4000;
