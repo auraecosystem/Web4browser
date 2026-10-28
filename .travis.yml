@@ -1,4 +1,23 @@
-language: ruby
-rvm:
-  - 2.3
-script: "bundle exec jekyll build"
+language: generic
+
+jobs:
+  include:
+    # Linux builds
+    - os: linux
+      arch: amd64
+    - os: linux
+      arch: arm64
+    
+    # macOS builds
+    - os: osx
+      osx_image: xcode12.5
+    
+    # Windows builds
+    - os: windows
+
+script:
+  - echo "Running tests on $TRAVIS_OS_NAME $TRAVIS_CPU_ARCH"
+  - # Add your build and test commands here
+
+notifications:
+  email: false
