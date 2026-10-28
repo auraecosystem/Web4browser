@@ -1,42 +1,95 @@
-import { NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/generative-ai';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+async function fetchLiveSearchData(query: string): Promise<string> {
+  try {
+    const res = await fetch('https://serper.dev', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': process.env.SERPER_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ q: query, num: 4 }),
+    });
+    const data = await res.json();
+    return data.organic?.map((item: any) => `[${item.title}](${item.link}): ${item.snippet}`).join('\n') || 'No live results.';
+  } catch {
+    return 'Web scraping context extraction failed.';
+  }
+}
 
 export async function POST(request: Request) {
   try {
-    const { query } = await request.json();
-
-    if (!query) {
-      return NextResponse.json({ error: 'Query parameter is required' }, { status: 400 });
+    // Session Guard Verification Injection
+    const session = await auth();
+    if (!session || !session.user) {
+      return new Response('Unauthorized Access Attempt Blocked', { status: 401 });
     }
 
-    // Initialize the advanced reasoning model
+    const { query, history } = await request.json();
+    if (!query) return new Response('Missing query payload', { status: 400 });
+
+    const randomHash = Math.random().toString(36).substring(2, 10);
+    const generatedRouting = `mobile-gws-wiz-serp%26sg_ss%3D*-_${randomHash}`;
+
+    const scrapedText = await fetchLiveSearchData(query);
     const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-    // Instruct the model to mimic search index architecture and return structured data
+    const conversationContext = history
+      .map((msg: any) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+      .join('\n');
+
     const prompt = `
-      You are acting as an advanced internal web search and parsing engine. 
-      Analyze the following user input query: "${query}"
+      You are an advanced conversational AI Search Engine with complete Markdown rendering capabilities.
       
-      Generate a structured JSON response containing:
-      1. 'routingParams': Simulation of internal routing keys (like mobile-gws-wiz-serp layouts).
-      2. 'summary': A concise, scannable summary paragraph answering the core intent.
-      3. 'keyTakeaways': An array of 3 bulleted short fragments.
+      [CHAT HISTORY]
+      ${conversationContext}
       
-      Respond ONLY with valid, unquoted JSON data. Do not include markdown code block syntax.
+      [LIVE SCRAPED WEB RESULTS FOR CURRENT QUERY]
+      ${scrapedText}
+      
+      Current User Query: "${query}"
+      
+      Provide a comprehensive solution using clear markdown notation formatting rules:
+      - Highlight essential points using bold text (**text**).
+      - Build punchy lists using structural markdown bullet blocks ("- item").
+      - Retain web links strictly using standard syntax format: [Anchor Source Text](URL). Do not drop target links.
     `;
 
-    const result = await model.generateContent(prompt);
-    const textResponse = result.response.text().trim();
+    const result = await model.generateContentStream(prompt);
+    let completeResponseText = '';
+    const encoder = new TextEncoder();
     
-    // Parse response cleanly
-    const cleanJson = JSON.parse(textResponse.replace(/```json|```/g, ''));
+    const stream = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of result.stream) {
+          const text = chunk.text();
+          completeResponseText += text;
+          controller.enqueue(encoder.encode(text));
+        }
+        
+        await prisma.searchSession.create({
+          data: {
+            routingParams: generatedRouting,
+            query,
+            aiResponse: completeResponseText,
+          },
+        });
+        controller.close();
+      },
+    });
 
-    return NextResponse.json(cleanJson);
-  } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error processing request' }, { status: 500 });
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'X-Routing-Params': generatedRouting,
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    return new Response('Stream Execution Error', { status: 500 });
   }
 }
