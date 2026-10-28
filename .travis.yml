@@ -21,3 +21,12 @@ script:
 
 notifications:
   email: false
+import:
+  - travis-ci/build-configs:rubies.yml@adf1235
+  - travis-ci/build-configs:other.yml@v1
+
+# or
+
+import:
+  - source: travis-ci/build-configs:rubies.yml@adf1235
+  - source: travis-ci/build-configs:other.yml@v1
