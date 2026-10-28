@@ -1,6 +1,6 @@
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const ai = new GoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 export async function getVectorQueryContext(query: string): Promise<string> {
   if (!process.env.PINECONE_API_KEY || !process.env.PINECONE_INDEX_NAME) {

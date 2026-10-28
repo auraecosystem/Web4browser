@@ -1,0 +1,28 @@
+name: CI
+on:
+  push:
+    branches: [main, feat/hybrid-desktop-foundation]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+      - name: Generate Prisma client
+        run: npx prisma generate
+      - name: Run browser security tests
+        run: npm test
+      - name: Type-check application
+        run: npx tsc --noEmit

@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+*.log
+*.sqlite
+*.db
+.env
+.env.*
+!.env.example
+!.env.template
+.DS_Store
+release/
